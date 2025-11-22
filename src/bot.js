@@ -58,7 +58,7 @@ function analyzeServer(ip, options = {}) {
         // Timeout to prevent hanging
         const timeout = setTimeout(() => {
             finish();
-        }, 30000); // 30 seconds max per server
+        }, 20000); // 20 seconds max per server
 
         bot.on('error', (err) => {
            finish();
@@ -82,8 +82,15 @@ function analyzeServer(ip, options = {}) {
             // Collect Game Info
             data.gamemode = bot.game.gameMode;
             
-            // Wait a bit for chunks to load
-            await bot.waitForChunksToLoad();
+            // Wait a bit for chunks to load, but don't hang forever
+            try {
+                await Promise.race([
+                    bot.waitForChunksToLoad(),
+                    new Promise((_, reject) => setTimeout(() => reject(new Error('Chunk load timeout')), 5000))
+                ]);
+            } catch (e) {
+                // Continue even if chunks didn't fully load
+            }
             
             // Collect Player Info
             if (bot.players) {

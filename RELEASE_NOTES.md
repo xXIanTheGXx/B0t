@@ -1,3 +1,14 @@
+# Release Notes - v1.2.0
+
+## New Features
+- **Standalone Build**: Added support for building standalone executables via `pkg`. Run `npm run build` to generate binaries in `dist/`.
+- **Dark Mode**: The Web UI now features a modern dark theme.
+- **Copy IP**: Added a button to easily copy server IPs from the Web UI.
+
+## Improvements
+- **Performance**: Optimized scanning speed by reducing timeouts and improving chunk loading logic.
+- **Configuration**: Improved config loading to support external `config.json` in standalone builds.
+
 # Release Notes - v1.1.0
 
 ## New Features

@@ -34,13 +34,22 @@ A powerful Node.js tool to scan IPv4 ranges for Minecraft servers, gathering det
 
 ## Usage
 
-To start the scanner, run:
+### Web Interface (Recommended)
+Run `npm start` to launch the web interface at `http://localhost:3000`.
+This provides a user-friendly dashboard to manage scans, view real-time logs, and copy results.
 
+### CLI Mode
+Run `npm run cli` (or `node index.js`) to use the command-line interface.
+
+### Building Standalone Executable
+To create a standalone `.exe` (or binary for other OS), run:
 ```bash
-node index.js
+npm run build
 ```
+The output files will be in the `dist/` directory.
 
-Follow the on-screen prompts:
+### CLI Prompts
+If using the CLI, follow the on-screen prompts:
 1. **Start IP**: The starting IPv4 address (e.g., `1.2.3.4`).
 2. **End IP**: The ending IPv4 address (e.g., `1.2.3.255`).
 3. **Microsoft Account**: You can choose to use a Microsoft account or scan in "Offline" mode (for cracked servers or just checking MOTD/public info).
