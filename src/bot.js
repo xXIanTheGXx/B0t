@@ -26,8 +26,12 @@ function analyzeServer(ip, options = {}) {
             botOptions.password = options.password;
         }
 
+        // Setup Proxy
+        if (options.proxy) {
+            setupProxy(botOptions, options.proxy);
+        }
+
         const features = options.features || { structureScan: true, blockBreaking: true };
-        const structureBlocks = options.structureBlocks || DEFAULT_ARTIFICIAL_BLOCKS;
 
         let data = {
             ip: ip,
@@ -42,6 +46,8 @@ function analyzeServer(ip, options = {}) {
             },
             gamemode: null,
             structures: [],
+            density: {},
+            rare: [],
             canBreakBlocks: false,
             spawnProtection: false
         };
@@ -122,6 +128,14 @@ function analyzeServer(ip, options = {}) {
                  }));
             }
 
+            // Looting / Chest Stealer
+            if (options.looting && options.looting.enabled) {
+                const stealer = new ChestStealer(bot, options.looting.wishlist);
+                bot.on('windowOpen', (window) => {
+                    stealer.steal(window);
+                });
+            }
+
             // Structure Detection
             if (features.structureScan !== false) {
                 scanForStructures(bot, data, structureBlocks);
@@ -153,30 +167,6 @@ function analyzeServer(ip, options = {}) {
     });
 }
 
-function scanForStructures(bot, data, structureBlocks) {
-    const range = 32;
-    const position = bot.entity.position;
-
-    // Find blocks in a cubic area around the player
-    const blocks = bot.findBlocks({
-        matching: (block) => {
-            if (!block || !block.name) return false;
-            // Check if any part of the name matches our artificial list
-            return structureBlocks.some(art => block.name.includes(art));
-        },
-        maxDistance: range,
-        count: 50 // Don't need thousands, just presence
-    });
-
-    // Map block positions to names, unique list
-    const foundNames = new Set();
-    blocks.forEach(vec => {
-        const block = bot.blockAt(vec);
-        if (block) foundNames.add(block.name);
-    });
-
-    data.structures = Array.from(foundNames);
-}
 
 async function testBlockBreaking(bot, data) {
     // Try to break the block below

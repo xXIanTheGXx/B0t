@@ -129,6 +129,11 @@ class ScanManager extends EventEmitter {
 
                                 this.emit('log', `[ANALYZING] ${ipToScan}...`);
 
+                                let proxy = null;
+                                if (config.proxies && Array.isArray(config.proxies) && config.proxies.length > 0) {
+                                    proxy = config.proxies[Math.floor(Math.random() * config.proxies.length)];
+                                }
+
                                 // Pass full config or relevant parts
                                 const botOpts = {
                                     ...config.auth,
