@@ -75,6 +75,13 @@ async function connect(uri) {
     if (!uri) {
         throw new Error('Database URI is required');
     }
+
+    // Force 127.0.0.1 over localhost to prevent IPv6 issues on Windows
+    if (uri.includes('localhost')) {
+        console.warn('Replacing "localhost" with "127.0.0.1" in MongoDB URI to prevent IPv6 errors.');
+        uri = uri.replace('localhost', '127.0.0.1');
+    }
+
     try {
         mongoose.set('strictQuery', false);
         await mongoose.connect(uri);
