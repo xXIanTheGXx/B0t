@@ -5,10 +5,25 @@
     "portConcurrency": 200,
     "botConcurrency": 5
   },
+  "masscan": {
+    "enabled": true,
+    "bin": "masscan",
+    "rate": 1000,
+    "excludeFile": "exclude.txt"
+  },
+  "database": {
+    "uri": "mongodb://localhost:27017/minecraft_scanner"
+  },
   "auth": {
     "type": "offline",
     "email": "",
     "password": ""
+  },
+  "discord": {
+    "webhookUrl": ""
+  },
+  "agent": {
+    "enabled": false
   },
   "bot": {
     "features": {
