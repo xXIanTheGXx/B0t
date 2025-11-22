@@ -2,6 +2,9 @@ const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const ScanManager = require('./src/scanManager');
+const { connect } = require('./src/database');
+const { loadConfig } = require('./src/config');
+const apiRouter = require('./src/api');
 const fs = require('fs');
 const path = require('path');
 
@@ -9,7 +12,13 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
+// Connect to Database
+const config = loadConfig();
+const dbUri = config.database ? config.database.uri : 'mongodb://localhost:27017/minecraft_scanner';
+connect(dbUri).catch(err => console.error('Database connection failed:', err.message));
+
 app.use(express.static(path.join(__dirname, 'public')));
+app.use('/api', apiRouter);
 
 let currentScanner = null;
 
@@ -25,7 +34,7 @@ io.on('connection', (socket) => {
             await new Promise(r => setTimeout(r, 500));
         }
 
-        const { startIp, endIp, authOptions, bot } = data;
+        const { startIp, endIp, authOptions, bot, ...rest } = data;
 
         if(!startIp || !endIp) {
             socket.emit('error', 'Invalid IP range');
@@ -43,6 +52,10 @@ io.on('connection', (socket) => {
 
         currentScanner.on('log', (msg) => {
             io.emit('log', msg);
+        });
+
+        currentScanner.on('progress', (data) => {
+            io.emit('progress', data);
         });
 
         currentScanner.on('result', (result) => {
@@ -66,7 +79,8 @@ io.on('connection', (socket) => {
             const config = {
                 scan: { startIp, endIp },
                 auth: authOptions || { auth: 'offline' },
-                bot: bot || {}
+                bot: bot || {},
+                ...rest
             };
 
             await currentScanner.startScan(config);

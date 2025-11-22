@@ -6,67 +6,123 @@
     <title>Minecraft Server Scanner</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="css/style.css" rel="stylesheet">
-    <style>
-        #logs {
-            height: 300px;
-            overflow-y: scroll;
-            padding: 10px;
-            font-size: 0.9rem;
-        }
-        #results {
-            height: 400px;
-            overflow-y: scroll;
-        }
-        .server-badge {
-            font-size: 0.8em;
-            margin-right: 5px;
-        }
-    </style>
 </head>
 <body>
-    <div class="container mt-5">
-        <h1 class="mb-4 text-center">Minecraft Server Scanner</h1>
+    <div class="nav-header">
+        <div class="brand">B0t Scanner</div>
+        <a href="/" class="active">Scanner</a>
+        <a href="/map.html">Map</a>
+    </div>
 
-        <div class="row mb-4">
-            <div class="col-md-4">
+    <div class="container">
+        <!-- Progress Section -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-end mb-2">
+                    <h5 class="card-title m-0">Scan Progress</h5>
+                    <div id="stats" class="text-end">
+                        <span class="me-3">Current IP: <span id="currentIp" class="text-info">Idle</span></span>
+                        <span class="me-3">Rate: <span id="scanRate" class="text-success">0</span> IPs/s</span>
+                    </div>
+                </div>
+                <div class="progress">
+                    <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%">0%</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-5 mb-4">
                 <div class="card h-100">
-                    <div class="card-header">Scan Settings</div>
+                    <div class="card-header">Configuration</div>
                     <div class="card-body">
-                        <div class="mb-3">
-                            <label for="startIp" class="form-label">Start IP</label>
-                            <input type="text" class="form-control" id="startIp" placeholder="1.0.0.0">
-                        </div>
-                        <div class="mb-3">
-                            <label for="endIp" class="form-label">End IP</label>
-                            <input type="text" class="form-control" id="endIp" placeholder="1.0.0.5">
-                        </div>
-                        <div class="form-check mb-3">
-                            <input class="form-check-input" type="checkbox" id="useAuth">
-                            <label class="form-check-label" for="useAuth">
-                                Use Microsoft Auth
-                            </label>
-                        </div>
-                        <div class="mb-3 d-none" id="authFields">
-                            <label for="email" class="form-label">Email</label>
-                            <input type="email" class="form-control" id="email">
+                        <!-- Tabs -->
+                        <ul class="nav nav-tabs mb-3" id="configTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="network-tab" data-bs-toggle="tab" data-bs-target="#network" type="button">Network</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="bot-tab" data-bs-toggle="tab" data-bs-target="#bot" type="button">Bot</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="modules-tab" data-bs-toggle="tab" data-bs-target="#modules" type="button">Modules</button>
+                            </li>
+                        </ul>
+
+                        <div class="tab-content" id="configTabsContent">
+                            <!-- Network Tab -->
+                            <div class="tab-pane fade show active" id="network" role="tabpanel">
+                                <div class="row g-2 mb-3">
+                                    <div class="col">
+                                        <label class="form-label">Start IP</label>
+                                        <input type="text" class="form-control" id="startIp" placeholder="1.0.0.0">
+                                    </div>
+                                    <div class="col">
+                                        <label class="form-label">End IP</label>
+                                        <input type="text" class="form-control" id="endIp" placeholder="1.0.0.255">
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Masscan Rate (pps)</label>
+                                    <input type="number" class="form-control" id="masscanRate" value="1000">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Proxies (SOCKS5, one per line)</label>
+                                    <textarea class="form-control" id="proxies" rows="3" placeholder="socks5://user:pass@ip:port"></textarea>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="useAuth">
+                                    <label class="form-check-label" for="useAuth">Microsoft Auth</label>
+                                </div>
+                                <div class="mt-2 d-none" id="authFields">
+                                    <input type="email" class="form-control" id="email" placeholder="Email">
+                                </div>
+                            </div>
+
+                            <!-- Bot Tab -->
+                            <div class="tab-pane fade" id="bot" role="tabpanel">
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="featStructure" checked>
+                                    <label class="form-check-label">Scan Structures</label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="featBlock" checked>
+                                    <label class="form-check-label">Test Block Breaking</label>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Structure Blocks</label>
+                                    <textarea class="form-control" id="structBlocks" rows="3" placeholder="planks, cobblestone..."></textarea>
+                                    <div class="form-text text-muted">Comma separated list of blocks to detect.</div>
+                                </div>
+                            </div>
+
+                            <!-- Modules Tab -->
+                            <div class="tab-pane fade" id="modules" role="tabpanel">
+                                <h6 class="text-info mt-2">Looting (Chest Stealer)</h6>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="modLooting">
+                                    <label class="form-check-label">Enable Looting</label>
+                                </div>
+                                <input class="form-control mb-3" id="lootWishlist" placeholder="diamond, emerald... (comma separated)">
+
+                                <h6 class="text-info">Agent Mode</h6>
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="modAgent">
+                                    <label class="form-check-label">Enable Autonomous Agent</label>
+                                </div>
+
+                                <h6 class="text-info">Discord Webhook</h6>
+                                <input type="text" class="form-control mb-3" id="discordUrl" placeholder="https://discord.com/api/webhooks/...">
+
+                                <h6 class="text-info">Inventory Viewer</h6>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="modInventory">
+                                    <label class="form-check-label">Enable Web Inventory (Port 3001)</label>
+                                </div>
+                            </div>
                         </div>
 
                         <hr>
-                        <h6>Bot Settings</h6>
-                        <div class="form-check mb-2">
-                            <input class="form-check-input" type="checkbox" id="featStructure" checked>
-                            <label class="form-check-label" for="featStructure">Scan Structures</label>
-                        </div>
-                        <div class="form-check mb-2">
-                            <input class="form-check-input" type="checkbox" id="featBlock" checked>
-                            <label class="form-check-label" for="featBlock">Test Block Breaking</label>
-                        </div>
-                        <div class="mb-3">
-                            <label for="structBlocks" class="form-label">Structure Blocks</label>
-                            <textarea class="form-control" id="structBlocks" rows="2" placeholder="planks, cobblestone..."></textarea>
-                            <div class="form-text text-muted">Comma separated list of blocks to detect.</div>
-                        </div>
-
                         <div class="d-grid gap-2">
                             <button id="startBtn" class="btn btn-primary">Start Scan</button>
                             <button id="stopBtn" class="btn btn-danger" disabled>Stop Scan</button>
@@ -75,30 +131,30 @@
                 </div>
             </div>
 
-            <div class="col-md-8">
-                <div class="card mb-3">
+            <div class="col-lg-7">
+                <div class="card h-100">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <span>Logs</span>
-                        <button class="btn btn-sm btn-outline-secondary" onclick="document.getElementById('logs').innerHTML = ''">Clear</button>
+                        <div>
+                            <span class="badge bg-primary me-2">Found: <span id="foundCount">0</span></span>
+                            <button class="btn btn-sm btn-outline-secondary" onclick="document.getElementById('logs').innerHTML = ''">Clear</button>
+                        </div>
                     </div>
-                    <div id="logs"></div>
-                </div>
-
-                <div class="card">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <span>Found Servers</span>
-                        <span class="badge bg-primary" id="foundCount">0</span>
-                    </div>
-                    <div class="card-body p-0">
-                         <div id="results" class="list-group list-group-flush">
-                             <!-- Results go here -->
-                         </div>
+                    <div class="card-body p-0 d-flex flex-column" style="height: 600px;">
+                        <div id="logs" class="flex-grow-1 mb-2" style="margin: 10px; overflow-y: scroll;"></div>
+                        <div class="border-top border-secondary p-2 bg-dark">
+                            <h6 class="text-white mb-2">Recent Results</h6>
+                            <div id="results" class="list-group list-group-flush" style="height: 200px; overflow-y: scroll;">
+                                <!-- Results -->
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
@@ -109,11 +165,6 @@
         const useAuth = document.getElementById('useAuth');
         const authFields = document.getElementById('authFields');
         const foundCountBadge = document.getElementById('foundCount');
-
-        // Bot inputs
-        const featStructure = document.getElementById('featStructure');
-        const featBlock = document.getElementById('featBlock');
-        const structBlocks = document.getElementById('structBlocks');
 
         let foundCount = 0;
 
@@ -135,24 +186,50 @@
                 authOptions = { auth: 'microsoft', username: email };
             }
 
-            // Collect bot settings
             const botSettings = {
                 features: {
-                    structureScan: featStructure.checked,
-                    blockBreaking: featBlock.checked
+                    structureScan: document.getElementById('featStructure').checked,
+                    blockBreaking: document.getElementById('featBlock').checked
                 },
-                structureBlocks: structBlocks.value.split(',').map(s => s.trim()).filter(s => s.length > 0)
+                structureBlocks: document.getElementById('structBlocks').value.split(',').map(s => s.trim()).filter(s => s.length > 0)
             };
-
             if (botSettings.structureBlocks.length === 0) delete botSettings.structureBlocks;
 
-            socket.emit('start-scan', { startIp, endIp, authOptions, bot: botSettings });
+            // Modules
+            const looting = {
+                enabled: document.getElementById('modLooting').checked,
+                wishlist: document.getElementById('lootWishlist').value.split(',').map(s=>s.trim()).filter(s=>s)
+            };
+            const agent = { enabled: document.getElementById('modAgent').checked };
+            const discord = { webhookUrl: document.getElementById('discordUrl').value };
+            const inventoryViewer = { enabled: document.getElementById('modInventory').checked };
+
+            const masscanRate = parseInt(document.getElementById('masscanRate').value) || 1000;
+            const proxies = document.getElementById('proxies').value.split('\n').map(s=>s.trim()).filter(s=>s);
+
+            const payload = {
+                startIp, endIp,
+                authOptions,
+                bot: botSettings,
+                looting, agent, discord, inventoryViewer,
+                masscan: { rate: masscanRate },
+                proxies
+            };
+
+            socket.emit('start-scan', payload);
+
             startBtn.disabled = true;
             stopBtn.disabled = false;
             logsDiv.innerHTML = '';
             resultsDiv.innerHTML = '';
             foundCount = 0;
             foundCountBadge.textContent = '0';
+
+            // Reset progress
+            document.getElementById('progressBar').style.width = '0%';
+            document.getElementById('progressBar').textContent = '0%';
+            document.getElementById('scanRate').textContent = '0';
+
             addLog('Requesting scan start...');
         });
 
@@ -171,6 +248,13 @@
             addLog(msg);
         });
 
+        socket.on('progress', (data) => {
+            document.getElementById('progressBar').style.width = data.percent + '%';
+            document.getElementById('progressBar').textContent = data.percent + '%';
+            document.getElementById('currentIp').textContent = data.currentIp;
+            document.getElementById('scanRate').textContent = data.rate;
+        });
+
         socket.on('error', (msg) => {
             addLog('ERROR: ' + msg);
             startBtn.disabled = false;
@@ -185,6 +269,7 @@
             addLog('Scan complete.');
             startBtn.disabled = false;
             stopBtn.disabled = true;
+            document.getElementById('progressBar').classList.remove('progress-bar-animated');
         });
 
         socket.on('result', (data) => {
@@ -208,34 +293,29 @@
 
             item.innerHTML = `
                 <div class="d-flex w-100 justify-content-between">
-                    <h5 class="mb-1 text-primary">${data.ip}:${data.port}</h5>
-                    <div>
-                        <button class="btn btn-sm btn-outline-light" onclick="copyToClipboard('${data.ip}')">Copy IP</button>
-                    </div>
+                    <h6 class="mb-1 text-primary pointer" onclick="copyToClipboard('${data.ip}')" style="cursor:pointer">${data.ip}:${data.port} <small class="text-muted">(Click to copy)</small></h6>
                 </div>
-                <p class="mb-1">
-                    <span class="badge bg-secondary server-badge">${data.version || 'Unknown'}</span>
-                    <span class="badge bg-info text-dark server-badge">Players: ${data.players.online}/${data.players.max}</span>
+                <p class="mb-1" style="font-size:0.85rem">
+                    <span class="badge bg-secondary">${data.version || 'Unknown'}</span>
+                    <span class="badge bg-info text-dark">Players: ${data.players.online}/${data.players.max}</span>
                     ${breakHtml}
                 </p>
                 ${structuresHtml}
             `;
-            resultsDiv.appendChild(item);
+            resultsDiv.insertBefore(item, resultsDiv.firstChild); // Prepend
         });
 
         function copyToClipboard(text) {
             navigator.clipboard.writeText(text).then(() => {
-                // Simple visual feedback could be added here
-                console.log('Copied: ' + text);
+                addLog(`Copied IP: ${text}`);
             }).catch(err => {
-                console.error('Failed to copy: ', err);
-                // Fallback
                 const textArea = document.createElement("textarea");
                 textArea.value = text;
                 document.body.appendChild(textArea);
                 textArea.select();
                 document.execCommand("copy");
                 document.body.removeChild(textArea);
+                addLog(`Copied IP: ${text}`);
             });
         }
     </script>

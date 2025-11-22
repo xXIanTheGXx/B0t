@@ -30,6 +30,11 @@ class ScanManager extends EventEmitter {
                  config.bot = { ...config.bot, ...arg1.bot };
                  if(arg1.bot.features) config.bot.features = { ...DEFAULTS.bot.features, ...arg1.bot.features };
             }
+            if (arg1.discord) config.discord = { ...config.discord, ...arg1.discord };
+            if (arg1.agent) config.agent = { ...config.agent, ...arg1.agent };
+            if (arg1.proxies) config.proxies = arg1.proxies;
+            if (arg1.looting) config.looting = { ...config.looting, ...arg1.looting };
+            if (arg1.inventoryViewer) config.inventoryViewer = { ...config.inventoryViewer, ...arg1.inventoryViewer };
             if (arg1.vpn) config.vpn = { ...config.vpn, ...arg1.vpn };
         } else {
             // Legacy arguments: startIp, endIp, authOptions
@@ -52,7 +57,11 @@ class ScanManager extends EventEmitter {
             throw new Error('Invalid IP range');
         }
 
-        this.emit('start', { startIp, endIp, total: endLong - startLong + 1 });
+        const totalIPs = endLong - startLong + 1;
+        this.emit('start', { startIp, endIp, total: totalIPs });
+
+        this.startTime = Date.now();
+        this.scannedCount = 0;
 
         const portScanConcurrency = config.scan.portConcurrency || 200;
         const botAnalysisConcurrency = config.scan.botConcurrency || 5;
@@ -113,6 +122,21 @@ class ScanManager extends EventEmitter {
             while (currentLong <= endLong && activePromises.size < portScanConcurrency + 50 && !this.isPaused) {
                 const ipToScan = long2ip(currentLong);
                 currentLong++;
+                this.scannedCount++;
+
+                // Emit progress
+                if (this.scannedCount % 50 === 0) {
+                    const elapsed = (Date.now() - this.startTime) / 1000;
+                    const rate = elapsed > 0 ? Math.round(this.scannedCount / elapsed) : 0;
+                    const percent = Math.min(100, Math.round((this.scannedCount / totalIPs) * 100));
+                    this.emit('progress', {
+                        currentIp: ipToScan,
+                        scanned: this.scannedCount,
+                        total: totalIPs,
+                        rate: rate,
+                        percent: percent
+                    });
+                }
 
                 const promise = portLimit(async () => {
                     if (this.isPaused || !this.isScanning) return;
@@ -127,10 +151,20 @@ class ScanManager extends EventEmitter {
 
                                 this.emit('log', `[ANALYZING] ${ipToScan}...`);
 
+                                let proxy = null;
+                                if (config.proxies && Array.isArray(config.proxies) && config.proxies.length > 0) {
+                                    proxy = config.proxies[Math.floor(Math.random() * config.proxies.length)];
+                                }
+
                                 // Pass full config or relevant parts
                                 const botOpts = {
                                     ...config.auth,
-                                    ...config.bot
+                                    ...config.bot,
+                                    discord: config.discord,
+                                    agent: config.agent,
+                                    looting: config.looting,
+                                    inventoryViewer: config.inventoryViewer,
+                                    proxy: proxy
                                 };
 
                                 const data = await analyzeServer(ipToScan, botOpts);

@@ -7,8 +7,9 @@
   "scripts": {
     "start": "node server.js",
     "cli": "node index.js",
+    "scan:v2": "node src/run_scan.js",
     "build": "pkg . --out-path dist --compress GZip --targets node18-linux-x64,node18-win-x64,node18-macos-x64",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node tests/test_bot_auth.js && node tests/test_pipeline_logic.js"
   },
   "pkg": {
     "assets": [
@@ -25,14 +26,24 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "express": "^5.1.0",
+    "express": "^4.21.2",
+    "geoip-lite": "^1.4.10",
     "minecraft-data": "^3.100.0",
+    "minecraft-protocol": "^1.62.0",
     "mineflayer": "^4.33.0",
+    "mineflayer-pathfinder": "^2.4.5",
+    "mineflayer-statemachine": "^1.7.0",
+    "mineflayer-web-inventory": "^1.8.5",
+    "mongoose": "^9.0.0",
+    "node-fetch": "^2.7.0",
     "p-limit": "^3.1.0",
     "socket.io": "^4.8.1",
+    "socks": "^2.8.7",
+    "socks-proxy-agent": "^8.0.5",
     "vec3": "^0.1.10"
   },
   "devDependencies": {
+    "mock-require": "^3.0.3",
     "pkg": "^5.8.1"
   }
 }

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Server Map</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
+    <style>
+        #map { height: 90vh; width: 100%; margin-top: 10px; }
+        .nav { padding: 10px; background: #1a1a1a; border-bottom: 1px solid #333; display: flex; gap: 15px; }
+        .nav a { color: #aaa; text-decoration: none; font-weight: bold; }
+        .nav a:hover { color: #fff; }
+        body { margin: 0; background: #121212; color: white; font-family: sans-serif; }
+    </style>
+</head>
+<body>
+    <div class="nav">
+        <a href="/">Scanner</a>
+        <a href="/map.html" style="color: #fff;">Map</a>
+    </div>
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+    <script src="js/map.js"></script>
+</body>
+</html>
