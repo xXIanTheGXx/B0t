@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - B0t Scanner</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+</head>
+<body>
+    <div class="nav-header">
+        <div class="brand">B0t Scanner</div>
+        <a href="/">Scanner</a>
+        <a href="/map.html">Map</a>
+        <a href="/database.html">Database</a>
+        <a href="/settings.html" class="active">Settings</a>
+    </div>
+
+    <div class="container mt-4">
+        <div class="card">
+            <div class="card-header">
+                Settings
+            </div>
+            <div class="card-body">
+                <!-- Tabs -->
+                <ul class="nav nav-tabs mb-3" id="configTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="network-tab" data-bs-toggle="tab" data-bs-target="#network" type="button">Network</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="bot-tab" data-bs-toggle="tab" data-bs-target="#bot" type="button">Bot</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="modules-tab" data-bs-toggle="tab" data-bs-target="#modules" type="button">Modules</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="database-tab" data-bs-toggle="tab" data-bs-target="#database" type="button">Database</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="security-tab" data-bs-toggle="tab" data-bs-target="#security" type="button">Security</button>
+                    </li>
+                </ul>
+
+                <div class="tab-content" id="configTabsContent">
+                    <!-- Network Tab -->
+                    <div class="tab-pane fade show active" id="network" role="tabpanel">
+                        <div class="row g-2 mb-3">
+                            <div class="col">
+                                <label class="form-label">Start IP</label>
+                                <input type="text" class="form-control" id="startIp" placeholder="1.0.0.0">
+                            </div>
+                            <div class="col">
+                                <label class="form-label">End IP</label>
+                                <input type="text" class="form-control" id="endIp" placeholder="1.0.0.255">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Masscan Rate (pps)</label>
+                            <input type="number" class="form-control" id="masscanRate" value="1000">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Proxies (SOCKS5, one per line)</label>
+                            <textarea class="form-control" id="proxies" rows="3" placeholder="socks5://user:pass@ip:port"></textarea>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="useAuth">
+                            <label class="form-check-label" for="useAuth">Microsoft Auth</label>
+                        </div>
+                        <div class="mt-2 d-none" id="authFields">
+                            <div class="mb-2">
+                                <input type="email" class="form-control" id="email" placeholder="Email">
+                            </div>
+                            <div>
+                                <input type="password" class="form-control" id="authPassword" placeholder="Password (Optional)">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bot Tab -->
+                    <div class="tab-pane fade" id="bot" role="tabpanel">
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="featStructure" checked>
+                            <label class="form-check-label">Scan Structures</label>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="featBlock" checked>
+                            <label class="form-check-label">Test Block Breaking</label>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Structure Blocks</label>
+                            <textarea class="form-control" id="structBlocks" rows="3" placeholder="planks, cobblestone..."></textarea>
+                            <div class="form-text text-muted">Comma separated list of blocks to detect.</div>
+                        </div>
+                    </div>
+
+                    <!-- Modules Tab -->
+                    <div class="tab-pane fade" id="modules" role="tabpanel">
+                        <h6 class="text-info mt-2">Looting (Chest Stealer)</h6>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="modLooting">
+                            <label class="form-check-label">Enable Looting</label>
+                        </div>
+                        <input class="form-control mb-3" id="lootWishlist" placeholder="diamond, emerald... (comma separated)">
+
+                        <h6 class="text-info">Agent Mode</h6>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="modAgent">
+                            <label class="form-check-label">Enable Autonomous Agent</label>
+                        </div>
+
+                        <h6 class="text-info">Discord Webhook</h6>
+                        <input type="text" class="form-control mb-3" id="discordUrl" placeholder="https://discord.com/api/webhooks/...">
+
+                        <h6 class="text-info">Inventory Viewer</h6>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="modInventory">
+                            <label class="form-check-label">Enable Web Inventory (Port 3001)</label>
+                        </div>
+                    </div>
+
+                    <!-- Database Tab -->
+                    <div class="tab-pane fade" id="database" role="tabpanel">
+                        <div class="alert alert-warning p-2">
+                            Changes here require a reconnection.
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label">Host</label>
+                            <input type="text" class="form-control" id="dbHost" value="127.0.0.1">
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label">Port</label>
+                            <input type="number" class="form-control" id="dbPort" value="27017">
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label">Database Name</label>
+                            <input type="text" class="form-control" id="dbName" value="minecraft_scanner">
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label">Username (Optional)</label>
+                            <input type="text" class="form-control" id="dbUser" placeholder="root">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Password (Optional)</label>
+                            <input type="password" class="form-control" id="dbPass" placeholder="password">
+                        </div>
+                        <button id="saveDbBtn" class="btn btn-warning w-100">Update Database Config</button>
+                    </div>
+
+                    <!-- Security Tab (Requested "Password Option") -->
+                     <div class="tab-pane fade" id="security" role="tabpanel">
+                        <div class="mb-3">
+                            <label class="form-label" for="webPass">Web Interface Password (Optional)</label>
+                            <input type="password" class="form-control" id="webPass" placeholder="Set a password for the web interface">
+                            <div class="form-text text-muted">This is a placeholder for future security features.</div>
+                        </div>
+                     </div>
+                </div>
+
+                <hr>
+                <div class="d-grid gap-2">
+                    <button id="saveBtn" class="btn btn-success">Save Changes</button>
+                    <a href="/" class="btn btn-secondary">Back to Scanner</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        const useAuth = document.getElementById('useAuth');
+        const authFields = document.getElementById('authFields');
+        const saveBtn = document.getElementById('saveBtn');
+        const saveDbBtn = document.getElementById('saveDbBtn');
+
+        // Load Settings
+        function loadSettings() {
+            const settings = JSON.parse(localStorage.getItem('scannerSettings')) || {};
+
+            if (settings.network) {
+                document.getElementById('startIp').value = settings.network.startIp || '';
+                document.getElementById('endIp').value = settings.network.endIp || '';
+                document.getElementById('masscanRate').value = settings.network.masscanRate || 1000;
+                document.getElementById('proxies').value = settings.network.proxies || '';
+                document.getElementById('useAuth').checked = settings.network.useAuth || false;
+                document.getElementById('email').value = settings.network.email || '';
+                document.getElementById('authPassword').value = settings.network.authPassword || '';
+
+                if (settings.network.useAuth) {
+                    authFields.classList.remove('d-none');
+                }
+            }
+
+            if (settings.bot) {
+                document.getElementById('featStructure').checked = settings.bot.structureScan !== false;
+                document.getElementById('featBlock').checked = settings.bot.blockBreaking !== false;
+                document.getElementById('structBlocks').value = settings.bot.structureBlocks || '';
+            }
+
+            if (settings.modules) {
+                document.getElementById('modLooting').checked = settings.modules.looting || false;
+                document.getElementById('lootWishlist').value = settings.modules.lootWishlist || '';
+                document.getElementById('modAgent').checked = settings.modules.agent || false;
+                document.getElementById('discordUrl').value = settings.modules.discordUrl || '';
+                document.getElementById('modInventory').checked = settings.modules.inventory || false;
+            }
+
+            if (settings.database) {
+                document.getElementById('dbHost').value = settings.database.host || '127.0.0.1';
+                document.getElementById('dbPort').value = settings.database.port || '27017';
+                document.getElementById('dbName').value = settings.database.name || 'minecraft_scanner';
+                document.getElementById('dbUser').value = settings.database.user || '';
+                document.getElementById('dbPass').value = settings.database.pass || '';
+            }
+
+             if (settings.security) {
+                document.getElementById('webPass').value = settings.security.webPass || '';
+            }
+        }
+
+        // Save Settings
+        function saveSettings() {
+            const settings = {
+                network: {
+                    startIp: document.getElementById('startIp').value,
+                    endIp: document.getElementById('endIp').value,
+                    masscanRate: document.getElementById('masscanRate').value,
+                    proxies: document.getElementById('proxies').value,
+                    useAuth: document.getElementById('useAuth').checked,
+                    email: document.getElementById('email').value,
+                    authPassword: document.getElementById('authPassword').value
+                },
+                bot: {
+                    structureScan: document.getElementById('featStructure').checked,
+                    blockBreaking: document.getElementById('featBlock').checked,
+                    structureBlocks: document.getElementById('structBlocks').value
+                },
+                modules: {
+                    looting: document.getElementById('modLooting').checked,
+                    lootWishlist: document.getElementById('lootWishlist').value,
+                    agent: document.getElementById('modAgent').checked,
+                    discordUrl: document.getElementById('discordUrl').value,
+                    inventory: document.getElementById('modInventory').checked
+                },
+                database: {
+                    host: document.getElementById('dbHost').value,
+                    port: document.getElementById('dbPort').value,
+                    name: document.getElementById('dbName').value,
+                    user: document.getElementById('dbUser').value,
+                    pass: document.getElementById('dbPass').value
+                },
+                security: {
+                    webPass: document.getElementById('webPass').value
+                }
+            };
+
+            localStorage.setItem('scannerSettings', JSON.stringify(settings));
+            alert('Settings saved!');
+        }
+
+        useAuth.addEventListener('change', () => {
+            if (useAuth.checked) {
+                authFields.classList.remove('d-none');
+            } else {
+                authFields.classList.add('d-none');
+            }
+        });
+
+        saveBtn.addEventListener('click', saveSettings);
+
+        saveDbBtn.addEventListener('click', () => {
+             const host = document.getElementById('dbHost').value || '127.0.0.1';
+            const port = document.getElementById('dbPort').value || '27017';
+            const db = document.getElementById('dbName').value || 'minecraft_scanner';
+            const user = document.getElementById('dbUser').value;
+            const pass = document.getElementById('dbPass').value;
+
+            let uri = `mongodb://`;
+            if (user && pass) {
+                uri += `${encodeURIComponent(user)}:${encodeURIComponent(pass)}@`;
+            }
+            uri += `${host}:${port}/${db}`;
+
+            socket.emit('update-database', { uri });
+            alert('Database update requested.');
+        });
+
+        // Initialize
+        loadSettings();
+
+    </script>
+</body>
+</html>

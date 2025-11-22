@@ -13,6 +13,7 @@
         <a href="/" class="active">Scanner</a>
         <a href="/map.html">Map</a>
         <a href="/database.html">Database</a>
+        <a href="/settings.html">Settings</a>
     </div>
 
     <div class="container">
@@ -34,139 +35,16 @@
 
         <div class="row">
             <div class="col-lg-5 mb-4">
-                <div class="card h-100">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <span>Configuration</span>
-                        <div class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" id="simpleMode" checked>
-                            <label class="form-check-label" for="simpleMode">Normal Settings</label>
-                        </div>
+                 <!-- Configuration Removed - Moved to Settings -->
+                 <div class="card h-100 d-flex flex-column justify-content-center align-items-center p-4">
+                    <h5 class="mb-3">Scanner Controls</h5>
+                    <div class="d-grid gap-2 w-100">
+                        <button id="startBtn" class="btn btn-primary btn-lg">Start Scan</button>
+                        <button id="stopBtn" class="btn btn-danger btn-lg" disabled>Stop Scan</button>
+                        <a href="/settings.html" class="btn btn-secondary">Configure Settings</a>
                     </div>
-                    <div class="card-body">
-                        <!-- Tabs -->
-                        <ul class="nav nav-tabs mb-3" id="configTabs" role="tablist">
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link active" id="network-tab" data-bs-toggle="tab" data-bs-target="#network" type="button">Network</button>
-                            </li>
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link" id="bot-tab" data-bs-toggle="tab" data-bs-target="#bot" type="button">Bot</button>
-                            </li>
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link" id="modules-tab" data-bs-toggle="tab" data-bs-target="#modules" type="button">Modules</button>
-                            </li>
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link" id="database-tab" data-bs-toggle="tab" data-bs-target="#database" type="button">Database</button>
-                            </li>
-                        </ul>
-
-                        <div class="tab-content" id="configTabsContent">
-                            <!-- Network Tab -->
-                            <div class="tab-pane fade show active" id="network" role="tabpanel">
-                                <div class="row g-2 mb-3">
-                                    <div class="col">
-                                        <label class="form-label">Start IP</label>
-                                        <input type="text" class="form-control" id="startIp" placeholder="1.0.0.0">
-                                    </div>
-                                    <div class="col">
-                                        <label class="form-label">End IP</label>
-                                        <input type="text" class="form-control" id="endIp" placeholder="1.0.0.255">
-                                    </div>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Masscan Rate (pps)</label>
-                                    <input type="number" class="form-control" id="masscanRate" value="1000">
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Proxies (SOCKS5, one per line)</label>
-                                    <textarea class="form-control" id="proxies" rows="3" placeholder="socks5://user:pass@ip:port"></textarea>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="useAuth">
-                                    <label class="form-check-label" for="useAuth">Microsoft Auth</label>
-                                </div>
-                                <div class="mt-2 d-none" id="authFields">
-                                    <input type="email" class="form-control" id="email" placeholder="Email">
-                                </div>
-                            </div>
-
-                            <!-- Bot Tab -->
-                            <div class="tab-pane fade" id="bot" role="tabpanel">
-                                <div class="form-check mb-2">
-                                    <input class="form-check-input" type="checkbox" id="featStructure" checked>
-                                    <label class="form-check-label">Scan Structures</label>
-                                </div>
-                                <div class="form-check mb-2">
-                                    <input class="form-check-input" type="checkbox" id="featBlock" checked>
-                                    <label class="form-check-label">Test Block Breaking</label>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Structure Blocks</label>
-                                    <textarea class="form-control" id="structBlocks" rows="3" placeholder="planks, cobblestone..."></textarea>
-                                    <div class="form-text text-muted">Comma separated list of blocks to detect.</div>
-                                </div>
-                            </div>
-
-                            <!-- Modules Tab -->
-                            <div class="tab-pane fade" id="modules" role="tabpanel">
-                                <h6 class="text-info mt-2">Looting (Chest Stealer)</h6>
-                                <div class="form-check mb-2">
-                                    <input class="form-check-input" type="checkbox" id="modLooting">
-                                    <label class="form-check-label">Enable Looting</label>
-                                </div>
-                                <input class="form-control mb-3" id="lootWishlist" placeholder="diamond, emerald... (comma separated)">
-
-                                <h6 class="text-info">Agent Mode</h6>
-                                <div class="form-check mb-3">
-                                    <input class="form-check-input" type="checkbox" id="modAgent">
-                                    <label class="form-check-label">Enable Autonomous Agent</label>
-                                </div>
-
-                                <h6 class="text-info">Discord Webhook</h6>
-                                <input type="text" class="form-control mb-3" id="discordUrl" placeholder="https://discord.com/api/webhooks/...">
-
-                                <h6 class="text-info">Inventory Viewer</h6>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="modInventory">
-                                    <label class="form-check-label">Enable Web Inventory (Port 3001)</label>
-                                </div>
-                            </div>
-
-                            <!-- Database Tab -->
-                            <div class="tab-pane fade" id="database" role="tabpanel">
-                                <div class="alert alert-warning p-2">
-                                    Changes here require a reconnection.
-                                </div>
-                                <div class="mb-2">
-                                    <label class="form-label">Host</label>
-                                    <input type="text" class="form-control" id="dbHost" value="127.0.0.1">
-                                </div>
-                                <div class="mb-2">
-                                    <label class="form-label">Port</label>
-                                    <input type="number" class="form-control" id="dbPort" value="27017">
-                                </div>
-                                <div class="mb-2">
-                                    <label class="form-label">Database Name</label>
-                                    <input type="text" class="form-control" id="dbName" value="minecraft_scanner">
-                                </div>
-                                <div class="mb-2">
-                                    <label class="form-label">Username (Optional)</label>
-                                    <input type="text" class="form-control" id="dbUser" placeholder="root">
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Password (Optional)</label>
-                                    <input type="password" class="form-control" id="dbPass" placeholder="password">
-                                </div>
-                                <button id="saveDbBtn" class="btn btn-warning w-100">Update Database Config</button>
-                            </div>
-                        </div>
-
-                        <hr>
-                        <div class="d-grid gap-2">
-                            <button id="startBtn" class="btn btn-primary">Start Scan</button>
-                            <button id="stopBtn" class="btn btn-danger" disabled>Stop Scan</button>
-                        </div>
-                    </div>
-                </div>
+                    <small class="text-muted mt-3 text-center">Configure scanning parameters in Settings.</small>
+                 </div>
             </div>
 
             <div class="col-lg-7">
@@ -200,106 +78,74 @@
         const stopBtn = document.getElementById('stopBtn');
         const logsDiv = document.getElementById('logs');
         const resultsDiv = document.getElementById('results');
-        const useAuth = document.getElementById('useAuth');
-        const authFields = document.getElementById('authFields');
         const foundCountBadge = document.getElementById('foundCount');
-        const simpleMode = document.getElementById('simpleMode');
-        const modulesTabBtn = document.getElementById('modules-tab');
-        const databaseTabBtn = document.getElementById('database-tab');
-        const proxiesInput = document.getElementById('proxies').parentElement;
-        const masscanInput = document.getElementById('masscanRate').parentElement;
-        const saveDbBtn = document.getElementById('saveDbBtn');
 
         let foundCount = 0;
 
-        // Simple Mode Logic
-        function updateSimpleMode() {
-            const isSimple = simpleMode.checked;
-            if (isSimple) {
-                modulesTabBtn.classList.add('d-none');
-                databaseTabBtn.classList.add('d-none');
-                proxiesInput.classList.add('d-none');
-                masscanInput.classList.add('d-none');
-                // Switch to network tab if we were on a hidden tab
-                if (modulesTabBtn.classList.contains('active') || databaseTabBtn.classList.contains('active')) {
-                    document.getElementById('network-tab').click();
-                }
-            } else {
-                modulesTabBtn.classList.remove('d-none');
-                databaseTabBtn.classList.remove('d-none');
-                proxiesInput.classList.remove('d-none');
-                masscanInput.classList.remove('d-none');
-            }
-        }
-
-        simpleMode.addEventListener('change', updateSimpleMode);
-        // Init
-        updateSimpleMode();
-
-        useAuth.addEventListener('change', () => {
-            if (useAuth.checked) {
-                authFields.classList.remove('d-none');
-            } else {
-                authFields.classList.add('d-none');
-            }
-        });
-
-        // Database Update Logic
-        saveDbBtn.addEventListener('click', () => {
-            const host = document.getElementById('dbHost').value || '127.0.0.1';
-            const port = document.getElementById('dbPort').value || '27017';
-            const db = document.getElementById('dbName').value || 'minecraft_scanner';
-            const user = document.getElementById('dbUser').value;
-            const pass = document.getElementById('dbPass').value;
-
-            let uri = `mongodb://`;
-            if (user && pass) {
-                uri += `${encodeURIComponent(user)}:${encodeURIComponent(pass)}@`;
-            }
-            uri += `${host}:${port}/${db}`;
-
-            // Check if auth source needed? Usually default is fine.
-            // If connecting to Atlas or specific setup, params might be needed.
-            // But this covers the requested "password" case.
-
-            socket.emit('update-database', { uri });
-            addLog('Requesting database update...');
-        });
-
-        socket.on('db-update-status', (msg) => {
-            addLog(msg);
-        });
-
+        // Start Scan - Load from localStorage
         startBtn.addEventListener('click', () => {
-            const startIp = document.getElementById('startIp').value;
-            const endIp = document.getElementById('endIp').value;
-            const email = document.getElementById('email').value;
+            const settings = JSON.parse(localStorage.getItem('scannerSettings')) || {};
+
+            // Defaults if not set
+            const startIp = settings.network?.startIp;
+            const endIp = settings.network?.endIp;
+
+            if (!startIp || !endIp) {
+                alert('Please configure Start IP and End IP in Settings first!');
+                return;
+            }
+
+            const email = settings.network?.email;
+            const authPassword = settings.network?.authPassword;
+            const useAuth = settings.network?.useAuth;
 
             let authOptions = { auth: 'offline' };
-            if (useAuth.checked) {
+            if (useAuth) {
                 authOptions = { auth: 'microsoft', username: email };
+                if (authPassword) {
+                    authOptions.password = authPassword;
+                }
             }
 
             const botSettings = {
                 features: {
-                    structureScan: document.getElementById('featStructure').checked,
-                    blockBreaking: document.getElementById('featBlock').checked
+                    structureScan: settings.bot?.structureScan !== false,
+                    blockBreaking: settings.bot?.blockBreaking !== false
                 },
-                structureBlocks: document.getElementById('structBlocks').value.split(',').map(s => s.trim()).filter(s => s.length > 0)
+                structureBlocks: settings.bot?.structureBlocks ? settings.bot.structureBlocks.split(',').map(s => s.trim()).filter(s => s.length > 0) : []
             };
             if (botSettings.structureBlocks.length === 0) delete botSettings.structureBlocks;
 
             // Modules
             const looting = {
-                enabled: document.getElementById('modLooting').checked,
-                wishlist: document.getElementById('lootWishlist').value.split(',').map(s=>s.trim()).filter(s=>s)
+                enabled: settings.modules?.looting || false,
+                wishlist: settings.modules?.lootWishlist ? settings.modules.lootWishlist.split(',').map(s=>s.trim()).filter(s=>s) : []
             };
-            const agent = { enabled: document.getElementById('modAgent').checked };
-            const discord = { webhookUrl: document.getElementById('discordUrl').value };
-            const inventoryViewer = { enabled: document.getElementById('modInventory').checked };
+            const agent = { enabled: settings.modules?.agent || false };
+            const discord = { webhookUrl: settings.modules?.discordUrl || '' };
+            const inventoryViewer = { enabled: settings.modules?.inventory || false };
 
-            const masscanRate = parseInt(document.getElementById('masscanRate').value) || 1000;
-            const proxies = document.getElementById('proxies').value.split('\n').map(s=>s.trim()).filter(s=>s);
+            const masscanRate = parseInt(settings.network?.masscanRate) || 1000;
+            const proxies = settings.network?.proxies ? settings.network.proxies.split('\n').map(s=>s.trim()).filter(s=>s) : [];
+
+            // Database - Update if needed (Though user should have updated in settings)
+            if (settings.database) {
+                 const dbHost = settings.database.host || '127.0.0.1';
+                 const dbPort = settings.database.port || '27017';
+                 const dbName = settings.database.name || 'minecraft_scanner';
+                 const dbUser = settings.database.user;
+                 const dbPass = settings.database.pass;
+
+                 let uri = `mongodb://`;
+                 if (dbUser && dbPass) {
+                    uri += `${encodeURIComponent(dbUser)}:${encodeURIComponent(dbPass)}@`;
+                 }
+                 uri += `${dbHost}:${dbPort}/${dbName}`;
+
+                 // Emit update database just in case
+                 socket.emit('update-database', { uri });
+            }
+
 
             const payload = {
                 startIp, endIp,
@@ -412,6 +258,10 @@
                 addLog(`Copied IP: ${text}`);
             });
         }
+
+        socket.on('db-update-status', (msg) => {
+            addLog(msg);
+        });
     </script>
 </body>
 </html>
