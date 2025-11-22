@@ -2,7 +2,7 @@ const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const ScanManager = require('./src/scanManager');
-const { connect, Server: ServerModel } = require('./src/database');
+const { connect, Server: ServerModel, disconnect } = require('./src/database');
 const { loadConfig, saveConfig } = require('./src/config');
 const apiRouter = require('./src/api');
 const fs = require('fs');
@@ -114,6 +114,30 @@ io.on('connection', (socket) => {
         if (currentScanner && currentScanner.isScanning) {
             currentScanner.stopScan();
             io.emit('log', 'Scan stopped by user.');
+        }
+    });
+
+    socket.on('update-database', async (data) => {
+        if (data.uri) {
+            // Redact auth for log
+            const safeUri = data.uri.replace(/\/\/([^:]+):([^@]+)@/, '//***:***@');
+            console.log('Updating database config to:', safeUri);
+
+            try {
+                await disconnect();
+                await connect(data.uri);
+
+                // Save to config
+                const current = loadConfig();
+                if (!current.database) current.database = {};
+                current.database.uri = data.uri;
+                saveConfig(current);
+
+                socket.emit('db-update-status', 'Database connected and config saved!');
+            } catch (err) {
+                socket.emit('db-update-status', 'Error connecting to database: ' + err.message);
+                console.error('DB Connection Error:', err.message);
+            }
         }
     });
 });
