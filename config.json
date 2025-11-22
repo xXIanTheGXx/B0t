@@ -2,7 +2,7 @@
   "scan": {
     "startIp": "1.0.0.0",
     "endIp": "1.0.0.255",
-    "portConcurrency": 200,
+    "portConcurrency": 1000,
     "botConcurrency": 5
   },
   "masscan": {
@@ -40,9 +40,25 @@
       "blockBreaking": true
     },
     "structureBlocks": [
-      "planks", "cobblestone", "bricks", "glass", "stone_bricks", "bookshelf",
-      "wool", "concrete", "terracotta", "chest", "furnace", "crafting_table",
-      "door", "fence", "stairs", "slab", "bed", "torch", "lantern"
+      "planks",
+      "cobblestone",
+      "bricks",
+      "glass",
+      "stone_bricks",
+      "bookshelf",
+      "wool",
+      "concrete",
+      "terracotta",
+      "chest",
+      "furnace",
+      "crafting_table",
+      "door",
+      "fence",
+      "stairs",
+      "slab",
+      "bed",
+      "torch",
+      "lantern"
     ]
   },
   "vpn": {

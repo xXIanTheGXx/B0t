@@ -17,7 +17,8 @@ function analyzeServer(ip, options = {}) {
             username: options.username || options.email || `Scanner${Math.floor(Math.random() * 1000)}`,
             auth: options.auth || options.type || 'offline',
             version: false, // Auto detect
-            hideErrors: true
+            hideErrors: true,
+            profilesFolder: './nmp-cache' // Cache auth tokens to prevent re-authentication
         };
 
         if (options.password) {
@@ -81,7 +82,11 @@ function analyzeServer(ip, options = {}) {
         });
 
         bot.on('kicked', (reason) => {
-            data.kickReason = reason;
+            try {
+                data.kickReason = typeof reason === 'string' ? reason : JSON.stringify(reason);
+            } catch (e) {
+                data.kickReason = 'Unknown kick reason';
+            }
             finish();
         });
 
