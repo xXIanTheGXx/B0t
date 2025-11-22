@@ -1,7 +1,7 @@
 const mineflayer = require('mineflayer');
 const vec3 = require('vec3');
 
-const ARTIFICIAL_BLOCKS = [
+const DEFAULT_ARTIFICIAL_BLOCKS = [
     'planks', 'cobblestone', 'bricks', 'glass', 'stone_bricks', 'bookshelf',
     'wool', 'concrete', 'terracotta', 'chest', 'furnace', 'crafting_table',
     'door', 'fence', 'stairs', 'slab', 'bed', 'torch', 'lantern'
@@ -10,11 +10,10 @@ const ARTIFICIAL_BLOCKS = [
 function analyzeServer(ip, options = {}) {
     return new Promise((resolve) => {
         // Default auth to offline for scanning unless specified
-        // Note: Users should be careful with credentials.
         const botOptions = {
             host: ip,
             port: options.port || 25565,
-            username: options.email || `Scanner${Math.floor(Math.random() * 1000)}`,
+            username: options.username || options.email || `Scanner${Math.floor(Math.random() * 1000)}`,
             auth: options.auth || 'offline',
             version: false, // Auto detect
             hideErrors: true
@@ -23,6 +22,9 @@ function analyzeServer(ip, options = {}) {
         if (options.password) {
             botOptions.password = options.password;
         }
+
+        const features = options.features || { structureScan: true, blockBreaking: true };
+        const structureBlocks = options.structureBlocks || DEFAULT_ARTIFICIAL_BLOCKS;
 
         let data = {
             ip: ip,
@@ -59,10 +61,6 @@ function analyzeServer(ip, options = {}) {
         }, 30000); // 30 seconds max per server
 
         bot.on('error', (err) => {
-           // console.error(`Error connecting to ${ip}:`, err.message);
-           // Don't resolve here immediately, maybe wait for close or end, 
-           // but usually error means we can't proceed.
-           // For scanning, we just move on.
            finish();
         });
 
@@ -80,9 +78,6 @@ function analyzeServer(ip, options = {}) {
             data.version = bot.version;
         });
         
-        // Capture basic info if available before spawn (ping)
-        // Mineflayer automatically does a ping before join, but we get data after login mostly.
-        
         bot.once('spawn', async () => {
             // Collect Game Info
             data.gamemode = bot.game.gameMode;
@@ -97,17 +92,20 @@ function analyzeServer(ip, options = {}) {
                      name: name,
                      uuid: bot.players[name].uuid // if available
                  }));
-                 // Note: exact max players is not always available in bot object directly without ping
             }
 
             // Structure Detection
-            scanForStructures(bot, data);
+            if (features.structureScan !== false) {
+                scanForStructures(bot, data, structureBlocks);
+            }
 
             // Block Breaking Test
-            try {
-                await testBlockBreaking(bot, data);
-            } catch (e) {
-                // Ignore errors during testing
+            if (features.blockBreaking !== false) {
+                try {
+                    await testBlockBreaking(bot, data);
+                } catch (e) {
+                    // Ignore errors during testing
+                }
             }
 
             finish();
@@ -115,7 +113,7 @@ function analyzeServer(ip, options = {}) {
     });
 }
 
-function scanForStructures(bot, data) {
+function scanForStructures(bot, data, structureBlocks) {
     const range = 32;
     const position = bot.entity.position;
 
@@ -124,8 +122,7 @@ function scanForStructures(bot, data) {
         matching: (block) => {
             if (!block || !block.name) return false;
             // Check if any part of the name matches our artificial list
-            // This is a simple heuristic.
-            return ARTIFICIAL_BLOCKS.some(art => block.name.includes(art));
+            return structureBlocks.some(art => block.name.includes(art));
         },
         maxDistance: range,
         count: 50 // Don't need thousands, just presence
