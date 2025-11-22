@@ -21,12 +21,12 @@ const DEFAULTS = {
         excludeFile: 'exclude.txt'
     },
     database: {
-        uri: 'fs://data' // Changed default to reflect filesystem DB usage
+        uri: 'mongodb://127.0.0.1:27017/minecraft_scanner'
     },
     auth: {
         type: 'offline',
-        // Removed default email/password for premium auth as it's no longer the primary focus
-        // User can still add them to config.json if they want to use 'microsoft' auth
+        email: '',
+        password: ''
     },
     bot: {
         features: {

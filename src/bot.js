@@ -10,34 +10,19 @@ const inventoryViewer = require('mineflayer-web-inventory');
 
 function analyzeServer(ip, options = {}) {
     return new Promise((resolve) => {
-        // Simplified Auth: relying on mineflayer default behavior
-        // If options.email and options.password are provided, mineflayer uses Microsoft auth.
-        // Otherwise it defaults to offline (cracked) if 'auth' is not specified or 'offline'.
-
+        // Default auth to offline for scanning unless specified
         const botOptions = {
             host: ip,
             port: options.port || 25565,
+            username: options.username || options.email || `Scanner${Math.floor(Math.random() * 1000)}`,
+            auth: options.auth || options.type || 'offline',
             version: false, // Auto detect
             hideErrors: true,
-            // Remove profilesFolder to disable custom caching logic that might be broken
+            profilesFolder: './nmp-cache' // Cache auth tokens to prevent re-authentication
         };
 
-        // Handle Username/Auth
-        if (options.email && options.password) {
-            botOptions.username = options.email;
+        if (options.password) {
             botOptions.password = options.password;
-            botOptions.auth = 'microsoft'; // Explicitly set microsoft if credentials are present
-        } else if (options.username) {
-             botOptions.username = options.username;
-             botOptions.auth = 'offline';
-        } else {
-             botOptions.username = `Scanner${Math.floor(Math.random() * 1000)}`;
-             botOptions.auth = 'offline';
-        }
-
-        // Override if auth type is explicitly provided
-        if (options.auth) {
-            botOptions.auth = options.auth;
         }
 
         // Setup Proxy
@@ -66,15 +51,7 @@ function analyzeServer(ip, options = {}) {
             spawnProtection: false
         };
 
-        // Safely create bot
-        let bot;
-        try {
-             bot = mineflayer.createBot(botOptions);
-        } catch (err) {
-             data.kickReason = 'Bot creation failed: ' + err.message;
-             return resolve(data);
-        }
-
+        const bot = mineflayer.createBot(botOptions);
         let resolveCalled = false;
         let notifier = null;
 
@@ -97,7 +74,6 @@ function analyzeServer(ip, options = {}) {
         }, 20000); // 20 seconds max per server
 
         bot.on('error', (err) => {
-           // console.error('Bot Error:', err.message); // Optional logging
            finish();
         });
 
