@@ -2,6 +2,7 @@ const { Readable, Transform, Writable } = require('stream');
 const { pingServer } = require('./pinger');
 const { Server, Blacklist, connect, disconnect } = require('./database');
 const MasscanScanner = require('./masscan');
+const geo = require('./geo');
 
 class MasscanSource extends Readable {
     constructor(scanner) {
@@ -81,6 +82,19 @@ class PingerTransform extends Transform {
                 if (result.optedOut) {
                     await Blacklist.create({ ip: chunk.ip, reason: 'Opt-out via MOTD' }).catch(() => {});
                 } else {
+                    // Enrich with GeoIP
+                    const location = geo.lookup(chunk.ip);
+                    if (location && location.ll) {
+                        result.location = {
+                            type: 'Point',
+                            coordinates: [location.ll[1], location.ll[0]] // lon, lat
+                        };
+                        result.geo = {
+                            country: location.country,
+                            city: location.city,
+                            region: location.region
+                        };
+                    }
                     this.push(result);
                 }
             }

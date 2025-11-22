@@ -2,13 +2,11 @@ const mineflayer = require('mineflayer');
 const vec3 = require('vec3');
 const { setupPathfinder, configureMovements } = require('./bot_modules/navigation');
 const { createAgent } = require('./bot_modules/behavior');
+const { scanEnvironment } = require('./bot_modules/perception');
+const { ChestStealer } = require('./bot_modules/looting');
+const { setupProxy } = require('./bot_modules/proxy');
 const DiscordNotifier = require('./notifications');
-
-const DEFAULT_ARTIFICIAL_BLOCKS = [
-    'planks', 'cobblestone', 'bricks', 'glass', 'stone_bricks', 'bookshelf',
-    'wool', 'concrete', 'terracotta', 'chest', 'furnace', 'crafting_table',
-    'door', 'fence', 'stairs', 'slab', 'bed', 'torch', 'lantern'
-];
+const inventoryViewer = require('mineflayer-web-inventory');
 
 function analyzeServer(ip, options = {}) {
     return new Promise((resolve) => {
@@ -108,6 +106,17 @@ function analyzeServer(ip, options = {}) {
             } catch (e) {
                 // Ignore agent setup errors
             }
+
+            // Inventory Viewer
+            if (options.inventoryViewer && options.inventoryViewer.enabled) {
+                try {
+                    inventoryViewer(bot, {
+                        port: options.inventoryViewer.port || 3001
+                    });
+                } catch (e) {
+                    // console.error('Inventory Viewer failed to start', e);
+                }
+            }
             
             // Wait a bit for chunks to load, but don't hang forever
             try {
@@ -138,15 +147,20 @@ function analyzeServer(ip, options = {}) {
 
             // Structure Detection
             if (features.structureScan !== false) {
-                scanForStructures(bot, data, structureBlocks);
+                const env = scanEnvironment(bot);
+                data.structures = env.structures;
+                data.density = env.density;
+                data.rare = env.rare;
 
                 if (data.structures.length > 0 && notifier) {
+                    const rareText = data.rare.map(r => `${r.name} at ${r.pos}`).join('\n');
                     notifier.send(
                         'Structures Found',
                         `Found ${data.structures.length} types of structures on ${ip}`,
                         0x00FF00,
                         [
                             { name: 'Structures', value: data.structures.join(', '), inline: false },
+                            { name: 'Rare Blocks', value: rareText || 'None', inline: false },
                             { name: 'Version', value: bot.version, inline: true }
                         ]
                     );

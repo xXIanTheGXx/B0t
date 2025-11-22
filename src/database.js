@@ -32,6 +32,12 @@ const ServerSchema = new mongoose.Schema({
 
     favicon: String, // Base64 encoded image
 
+    geo: {
+        country: String,
+        city: String,
+        region: String
+    },
+
     // Geospatial data
     location: {
         type: {

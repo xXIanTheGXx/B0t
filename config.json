@@ -25,6 +25,15 @@
   "agent": {
     "enabled": false
   },
+  "inventoryViewer": {
+    "enabled": false,
+    "port": 3001
+  },
+  "proxies": [],
+  "looting": {
+    "enabled": false,
+    "wishlist": []
+  },
   "bot": {
     "features": {
       "structureScan": true,
