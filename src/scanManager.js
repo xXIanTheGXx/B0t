@@ -30,6 +30,10 @@ class ScanManager extends EventEmitter {
                  config.bot = { ...config.bot, ...arg1.bot };
                  if(arg1.bot.features) config.bot.features = { ...DEFAULTS.bot.features, ...arg1.bot.features };
             }
+            if (arg1.discord) config.discord = { ...config.discord, ...arg1.discord };
+            if (arg1.agent) config.agent = { ...config.agent, ...arg1.agent };
+            if (arg1.proxies) config.proxies = arg1.proxies;
+            if (arg1.looting) config.looting = { ...config.looting, ...arg1.looting };
             if (arg1.vpn) config.vpn = { ...config.vpn, ...arg1.vpn };
         } else {
             // Legacy arguments: startIp, endIp, authOptions
@@ -127,10 +131,19 @@ class ScanManager extends EventEmitter {
 
                                 this.emit('log', `[ANALYZING] ${ipToScan}...`);
 
+                                let proxy = null;
+                                if (config.proxies && Array.isArray(config.proxies) && config.proxies.length > 0) {
+                                    proxy = config.proxies[Math.floor(Math.random() * config.proxies.length)];
+                                }
+
                                 // Pass full config or relevant parts
                                 const botOpts = {
                                     ...config.auth,
-                                    ...config.bot
+                                    ...config.bot,
+                                    discord: config.discord,
+                                    agent: config.agent,
+                                    looting: config.looting,
+                                    proxy: proxy
                                 };
 
                                 const data = await analyzeServer(ipToScan, botOpts);
