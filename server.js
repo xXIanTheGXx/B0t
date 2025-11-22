@@ -24,7 +24,7 @@ io.on('connection', (socket) => {
             await new Promise(r => setTimeout(r, 500));
         }
 
-        const { startIp, endIp, authOptions } = data;
+        const { startIp, endIp, authOptions, bot } = data;
 
         if(!startIp || !endIp) {
             socket.emit('error', 'Invalid IP range');
@@ -61,7 +61,14 @@ io.on('connection', (socket) => {
         });
 
         try {
-            await currentScanner.startScan(startIp, endIp, authOptions || { auth: 'offline' });
+            // Construct config object
+            const config = {
+                scan: { startIp, endIp },
+                auth: authOptions || { auth: 'offline' },
+                bot: bot || {}
+            };
+
+            await currentScanner.startScan(config);
         } catch (e) {
             socket.emit('error', e.message);
             outputStream.end();
