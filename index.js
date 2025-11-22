@@ -1,9 +1,6 @@
 const readline = require('readline');
 const fs = require('fs');
-const { ip2long, long2ip } = require('./src/ipUtils');
-const { checkPort } = require('./src/scanner');
-const { analyzeServer } = require('./src/bot');
-const pLimit = require('p-limit');
+const ScanManager = require('./src/scanManager');
 
 const rl = readline.createInterface({
     input: process.stdin,
@@ -29,95 +26,38 @@ async function main() {
         authOptions.auth = 'microsoft';
     }
 
-    const startLong = ip2long(startIpInput);
-    const endLong = ip2long(endIpInput);
-
-    if (startLong === -1 || endLong === -1 || startLong > endLong) {
-        console.error("Invalid IP range.");
-        rl.close();
-        return;
-    }
-
-    console.log(`Scanning range: ${startIpInput} - ${endIpInput} (${endLong - startLong + 1} IPs)`);
-
     // Use a write stream for safe appending (NDJSON format)
-    const resultsFile = 'servers.jsonl'; // Changed to .jsonl for correctness
+    const resultsFile = 'servers.jsonl';
     const outputStream = fs.createWriteStream(resultsFile, { flags: 'a' });
 
-    const saveResult = (data) => {
+    const scanner = new ScanManager();
+
+    scanner.on('start', (info) => {
+         console.log(`Scanning range: ${info.startIp} - ${info.endIp} (${info.total} IPs)`);
+    });
+
+    scanner.on('log', (msg) => {
+        console.log(msg);
+    });
+
+    scanner.on('result', (data) => {
         outputStream.write(JSON.stringify(data) + '\n');
         console.log(`[FOUND] ${data.ip} - Players: ${data.players.online}`);
-    };
+    });
 
-    // Concurrency Limits
-    const portScanConcurrency = 200;
-    const botAnalysisConcurrency = 5;
-    
-    const portLimit = pLimit(portScanConcurrency);
-    const botLimit = pLimit(botAnalysisConcurrency);
+    scanner.on('error', (err) => {
+         console.error(`Error scanning ${err.ip}:`, err.error);
+    });
 
-    // We process IPs in chunks to avoid memory exhaustion
-    // However, pLimit manages the active promises. 
-    // The main issue with the previous loop was creating *all* promises at once.
-    // We need to feed the promises into pLimit as we go.
-    
-    let currentLong = startLong;
-    const activePromises = new Set();
-
-    // Function to fill the queue
-    const processNext = () => {
-        while (currentLong <= endLong && activePromises.size < portScanConcurrency + 50) {
-            const ipToScan = long2ip(currentLong);
-            currentLong++;
-
-            const promise = portLimit(async () => {
-                try {
-                    const isOpen = await checkPort(ipToScan);
-                    if (isOpen) {
-                         // Limit bot concurrency separately
-                         await botLimit(async () => {
-                            console.log(`[ANALYZING] ${ipToScan}...`);
-                            const data = await analyzeServer(ipToScan, authOptions);
-                            if (data.online) {
-                                saveResult(data);
-                            } else {
-                                console.log(`[FAILED] ${ipToScan} (Could not join)`);
-                            }
-                         });
-                    }
-                } catch (err) {
-                    console.error(`Error scanning ${ipToScan}:`, err);
-                }
-            }).then(() => {
-                activePromises.delete(promise);
-                processNext(); // Trigger next when one finishes
-            });
-
-            activePromises.add(promise);
-        }
-    };
-
-    // Initial fill
-    processNext();
-
-    // Wait loop
-    const waitForCompletion = async () => {
-        while (activePromises.size > 0 || currentLong <= endLong) {
-            await new Promise(resolve => setTimeout(resolve, 100));
-            // processNext is triggered by promise completion, 
-            // but we need to keep the script alive.
-            // The while loop condition checks if we are done.
-            if (activePromises.size === 0 && currentLong > endLong) {
-                break;
-            }
-        }
-    };
-
-    await waitForCompletion();
-
-    console.log("Scan complete. Results saved to servers.jsonl");
-    outputStream.end();
-    rl.close();
+    try {
+        await scanner.startScan(startIpInput, endIpInput, authOptions);
+        console.log("Scan complete. Results saved to servers.jsonl");
+    } catch (error) {
+        console.error(error.message);
+    } finally {
+        outputStream.end();
+        rl.close();
+    }
 }
 
 main();
