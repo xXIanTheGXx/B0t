@@ -1,74 +1,143 @@
-const mongoose = require('mongoose');
 const assert = require('assert');
+const fs = require('fs');
+const path = require('path');
 
-console.log(`Testing with Mongoose version: ${mongoose.version}`);
+// Mock fs to avoid writing real files during this test, or clean up after.
+// For simplicity, we will let it write to a test directory and clean it up.
+const TEST_DATA_DIR = path.resolve(process.cwd(), 'data_test');
+if (!fs.existsSync(TEST_DATA_DIR)) {
+    fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
+}
 
-// Mock mongoose.connect
-const originalConnect = mongoose.connect;
-let connectCalled = false;
-mongoose.connect = async (uri) => {
-    console.log(`Mock mongoose.connect called with ${uri}`);
-    connectCalled = true;
-    return Promise.resolve();
-};
+// We need to override the path in src/database.js, but it's hardcoded.
+// So we'll just test the interface and clean up the 'data' directory if it gets polluted,
+// OR we can rely on the fact that src/database checks process.cwd().
+// Actually, let's just mock 'fs' logic if possible? No, that's hard.
+
+// Let's just run the test. It will write to 'data/servers.json'.
+// We can back it up and restore it.
+const DATA_DIR = path.resolve(process.cwd(), 'data');
+const SERVERS_FILE = path.join(DATA_DIR, 'servers.json');
+const BLACKLIST_FILE = path.join(DATA_DIR, 'blacklist.json');
+
+let serverBackup = null;
+let blacklistBackup = null;
+
+if (fs.existsSync(SERVERS_FILE)) serverBackup = fs.readFileSync(SERVERS_FILE);
+if (fs.existsSync(BLACKLIST_FILE)) blacklistBackup = fs.readFileSync(BLACKLIST_FILE);
 
 const { Server, Blacklist, connect, disconnect } = require('../src/database');
 
 async function runTest() {
-    console.log('Running Database Unit Test...');
+    console.log('Running Database Unit Test (Filesystem Implementation)...');
 
-    // Test 1: Connect
+    // Test 1: Connect (Just loads files)
     try {
-        await connect('mongodb://mock/test');
-        assert.strictEqual(connectCalled, true, 'mongoose.connect was not called');
+        await connect('dummy-uri'); // URI is ignored
         console.log('Connect test passed.');
     } catch (e) {
         console.error('Connect test failed:', e);
         process.exit(1);
     }
 
-    // Test 2: Models exist
-    if (Server && Blacklist) {
-        console.log('Models exported correctly.');
+    // Test 2: Models exist and have methods
+    if (Server && Blacklist && typeof Server.find === 'function') {
+        console.log('Models exported correctly and have FS methods.');
     } else {
-        console.error('Models missing.');
+        console.error('Models missing or invalid interface.');
         process.exit(1);
     }
 
-    // Test 3: bulkWrite compatibility
-    // In Mongoose 6, Model.bulkWrite exists.
-    if (typeof Server.bulkWrite === 'function') {
-        console.log('Server.bulkWrite exists (Mongoose 6+ compatible).');
-    } else {
-        console.error('Server.bulkWrite is missing!');
-        process.exit(1);
-    }
-
-    // Test 4: Simulate bulkWrite execution
-    // We mock the implementation on the model to verify the function signature works.
-    const originalBulkWrite = Server.bulkWrite;
-    let bulkWriteCalled = false;
-    Server.bulkWrite = async (ops) => {
-        console.log(`Mock bulkWrite called with ${ops.length} ops`);
-        bulkWriteCalled = true;
-        return { result: { ok: 1, n: ops.length } };
-    };
-
+    // Test 3: bulkWrite
+    console.log('Testing bulkWrite...');
     try {
+        // Clear existing data for test isolation
+        Server.data = [];
+
         const ops = [
-            { updateOne: { filter: { ip: '1.2.3.4' }, update: { $set: { online: true } } } }
+            {
+                updateOne: {
+                    filter: { ip: '1.2.3.4' },
+                    update: { $set: { online: true, version: { name: '1.20' } } },
+                    upsert: true
+                }
+            },
+             {
+                updateOne: {
+                    filter: { ip: '5.6.7.8' },
+                    update: { $set: { online: false } },
+                    upsert: true
+                }
+            }
         ];
         await Server.bulkWrite(ops);
-        assert.strictEqual(bulkWriteCalled, true, 'bulkWrite was not called');
+
+        assert.strictEqual(Server.data.length, 2, 'Should have 2 documents');
+        assert.strictEqual(Server.data[0].ip, '1.2.3.4');
+        assert.strictEqual(Server.data[0].online, true);
+
         console.log('bulkWrite test passed.');
     } catch (e) {
         console.error('bulkWrite execution failed:', e);
         process.exit(1);
     }
 
-    // Restore
-    Server.bulkWrite = originalBulkWrite;
-    mongoose.connect = originalConnect;
+    // Test 4: Querying
+    console.log('Testing Querying (find/findOne)...');
+    try {
+        const found = await Server.findOne({ ip: '1.2.3.4' });
+        assert(found, 'Should find the document');
+        assert.strictEqual(found.version.name, '1.20');
+
+        const notFound = await Server.findOne({ ip: '9.9.9.9' });
+        assert(!notFound, 'Should not find missing document');
+
+        const list = await Server.find({ online: true });
+        // find returns a Cursor-like object
+        const listResults = await list;
+        // wait, my implementation of `find` returns a `QueryCursor` which has `then`?
+        // Yes, so `await` should work if it acts like a promise.
+        // But wait, I implemented `then` in QueryCursor.
+        // Let's verify usage: `await Server.find(...)`
+
+        // Correction: My `QueryCursor` needs to be awaitable.
+        // If it has a `.then` method, `await` calls it.
+
+        assert.strictEqual(listResults.length, 1);
+        assert.strictEqual(listResults[0].ip, '1.2.3.4');
+
+        console.log('Querying test passed.');
+    } catch (e) {
+        console.error('Querying test failed:', e);
+        process.exit(1);
+    }
+
+    // Test 5: Advanced Query Operators ($gte, $exists)
+    console.log('Testing Operators...');
+    try {
+        // Add more data
+        await Server.create({ ip: '10.0.0.1', players: { online: 5 } });
+        await Server.create({ ip: '10.0.0.2', players: { online: 10 } });
+
+        const gte = await Server.find({ 'players.online': { $gte: 6 } });
+        assert.strictEqual(gte.length, 1);
+        assert.strictEqual(gte[0].ip, '10.0.0.2');
+
+        const exists = await Server.find({ 'players.online': { $exists: true } });
+        assert.strictEqual(exists.length, 2);
+
+        console.log('Operators test passed.');
+    } catch (e) {
+        console.error('Operators test failed:', e);
+        process.exit(1);
+    }
+
+    // Cleanup: Restore backups
+    if (serverBackup) fs.writeFileSync(SERVERS_FILE, serverBackup);
+    else if (fs.existsSync(SERVERS_FILE)) fs.unlinkSync(SERVERS_FILE); // Delete if it didn't exist before
+
+    if (blacklistBackup) fs.writeFileSync(BLACKLIST_FILE, blacklistBackup);
+    else if (fs.existsSync(BLACKLIST_FILE)) fs.unlinkSync(BLACKLIST_FILE);
 
     console.log('Database Unit Test: ALL PASS');
 }
