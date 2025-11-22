@@ -14,6 +14,15 @@ const DEFAULTS = {
         portConcurrency: 1000,
         botConcurrency: 5
     },
+    masscan: {
+        enabled: true,
+        bin: 'masscan',
+        rate: 1000,
+        excludeFile: 'exclude.txt'
+    },
+    database: {
+        uri: 'mongodb://127.0.0.1:27017/minecraft_scanner'
+    },
     auth: {
         type: 'offline',
         email: '',

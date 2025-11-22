@@ -12,7 +12,7 @@
     "excludeFile": "exclude.txt"
   },
   "database": {
-    "uri": "mongodb://localhost:27017/minecraft_scanner"
+    "uri": "mongodb://127.0.0.1:27017/minecraft_scanner"
   },
   "auth": {
     "type": "offline",
