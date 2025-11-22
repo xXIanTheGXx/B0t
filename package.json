@@ -27,7 +27,9 @@
   "dependencies": {
     "express": "^5.1.0",
     "minecraft-data": "^3.100.0",
+    "minecraft-protocol": "^1.62.0",
     "mineflayer": "^4.33.0",
+    "mongoose": "^9.0.0",
     "p-limit": "^3.1.0",
     "socket.io": "^4.8.1",
     "vec3": "^0.1.10"
