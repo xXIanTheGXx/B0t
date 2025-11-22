@@ -25,11 +25,6 @@
   "agent": {
     "enabled": false
   },
-  "proxies": [],
-  "looting": {
-    "enabled": false,
-    "wishlist": []
-  },
   "bot": {
     "features": {
       "structureScan": true,
