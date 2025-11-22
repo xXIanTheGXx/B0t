@@ -93,15 +93,10 @@ async function runTest() {
         assert(!notFound, 'Should not find missing document');
 
         const list = await Server.find({ online: true });
-        // find returns a Cursor-like object
-        const listResults = await list;
-        // wait, my implementation of `find` returns a `QueryCursor` which has `then`?
-        // Yes, so `await` should work if it acts like a promise.
-        // But wait, I implemented `then` in QueryCursor.
-        // Let's verify usage: `await Server.find(...)`
 
         // Correction: My `QueryCursor` needs to be awaitable.
         // If it has a `.then` method, `await` calls it.
+        const listResults = await list;
 
         assert.strictEqual(listResults.length, 1);
         assert.strictEqual(listResults[0].ip, '1.2.3.4');
@@ -129,6 +124,38 @@ async function runTest() {
         console.log('Operators test passed.');
     } catch (e) {
         console.error('Operators test failed:', e);
+        process.exit(1);
+    }
+
+    // Test 6: findOneAndUpdate
+    console.log('Testing findOneAndUpdate...');
+    try {
+        const result = await Server.findOneAndUpdate(
+            { ip: '10.0.0.1' },
+            { $set: { 'players.online': 20, newField: 'test' } },
+            { upsert: true, new: true }
+        );
+
+        assert.strictEqual(result.ip, '10.0.0.1');
+        assert.strictEqual(result.players.online, 20);
+        assert.strictEqual(result.newField, 'test');
+
+        // Verify persistence
+        const check = await Server.findOne({ ip: '10.0.0.1' });
+        assert.strictEqual(check.players.online, 20);
+
+        // Test upsert
+        const upserted = await Server.findOneAndUpdate(
+            { ip: '99.99.99.99' },
+            { $set: { created: true } },
+            { upsert: true }
+        );
+        assert.strictEqual(upserted.ip, '99.99.99.99');
+        assert.strictEqual(upserted.created, true);
+
+        console.log('findOneAndUpdate test passed.');
+    } catch (e) {
+        console.error('findOneAndUpdate test failed:', e);
         process.exit(1);
     }
 

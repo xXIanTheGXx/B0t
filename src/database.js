@@ -74,6 +74,31 @@ class Collection extends EventEmitter {
         return path.split('.').reduce((o, k) => (o || {})[k], obj);
     }
 
+    _updateDoc(doc, update) {
+        if (update.$set) {
+            // Simple implementation: merge top-level keys or direct assignment
+            // Mongoose does deep merge. We will do shallow merge for top level keys,
+            // but strictly speaking we should handle dot notation updates.
+            // Given the scope, let's handle simple object assignment.
+
+            for (const key in update.$set) {
+                 // If key contains dot, handle nested
+                 if (key.includes('.')) {
+                     const parts = key.split('.');
+                     let current = doc;
+                     for(let i=0; i<parts.length-1; i++) {
+                         if (!current[parts[i]]) current[parts[i]] = {};
+                         current = current[parts[i]];
+                     }
+                     current[parts[parts.length-1]] = update.$set[key];
+                 } else {
+                     doc[key] = update.$set[key];
+                 }
+            }
+        }
+        // Add other operators if needed, like $inc, $push
+    }
+
     // API Methods matching Mongoose
     find(query = {}) {
         const results = this.data.filter(doc => this._matches(doc, query));
@@ -99,6 +124,24 @@ class Collection extends EventEmitter {
         return newDoc;
     }
 
+    // Missing method implemented for server.js compatibility
+    async findOneAndUpdate(filter, update, options = {}) {
+        let doc = this.data.find(d => this._matches(d, filter));
+
+        if (doc) {
+            this._updateDoc(doc, update);
+        } else if (options.upsert) {
+            doc = { ...filter, _id: Date.now().toString() + Math.random() };
+            this._updateDoc(doc, update);
+            this.data.push(doc);
+        } else {
+            return null;
+        }
+
+        this.save();
+        return doc;
+    }
+
     async bulkWrite(ops) {
         let modifiedCount = 0;
         let upsertedCount = 0;
@@ -110,16 +153,12 @@ class Collection extends EventEmitter {
 
                 if (index !== -1) {
                     // Update existing
-                    if (update.$set) {
-                        Object.assign(this.data[index], update.$set);
-                    }
+                    this._updateDoc(this.data[index], update);
                     modifiedCount++;
                 } else if (upsert) {
                     // Insert new
-                    const newDoc = { ...filter };
-                    if (update.$set) {
-                        Object.assign(newDoc, update.$set);
-                    }
+                    const newDoc = { ...filter, _id: Date.now().toString() + Math.random() };
+                    this._updateDoc(newDoc, update);
                     this.data.push(newDoc);
                     upsertedCount++;
                 }
@@ -129,10 +168,7 @@ class Collection extends EventEmitter {
         return { modifiedCount, upsertedCount };
     }
 
-    // Helper for selecting specific fields (projection) - minimal implementation
     select(fields) {
-         // This is usually chained after find(), but find() returns a Cursor.
-         // We'll implement select() on the Cursor.
          return this;
     }
 }
@@ -176,15 +212,9 @@ class QueryCursor {
             fields.forEach(field => {
                 const val = this._getNestedValue(doc, field);
                 if (val !== undefined) {
-                     // Assign back to nested structure?
-                     // For simplicity, we'll just keep it flat or use a helper to reconstruct
-                     // But existing code expects structured data.
-                     // Let's try to reconstruct basic nested structure
                      this._setNestedValue(newDoc, field, val);
                 }
             });
-             // Always include critical fields if they exist and weren't excluded?
-             // Mongoose usually includes _id. We'll skip that complexity.
              return newDoc;
         });
         return this;
@@ -194,7 +224,6 @@ class QueryCursor {
         resolve(this.results);
     }
 
-    // Helper for nested property access
     _getNestedValue(obj, path) {
         return path.split('.').reduce((o, k) => (o || {})[k], obj);
     }
