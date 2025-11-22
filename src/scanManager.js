@@ -12,12 +12,15 @@ class ScanManager extends EventEmitter {
         this.isScanning = false;
         this.isPaused = false;
         this.consecutiveTimeouts = 0;
+        this.botPromises = new Set();
     }
 
     async startScan(arg1, arg2, arg3) {
         if (this.isScanning) {
             throw new Error('Scan already in progress');
         }
+
+        this.botPromises = new Set();
 
         // Resolve Config
         let config = JSON.parse(JSON.stringify(DEFAULTS)); // Clone defaults
@@ -119,7 +122,12 @@ class ScanManager extends EventEmitter {
                 return;
             }
 
-            while (currentLong <= endLong && activePromises.size < portScanConcurrency + 50 && !this.isPaused) {
+            // Backpressure: Pause port scanning if bot queue is too large
+            while (currentLong <= endLong &&
+                   activePromises.size < portScanConcurrency + 50 &&
+                   this.botPromises.size < (botAnalysisConcurrency * 20) &&
+                   !this.isPaused) {
+
                 const ipToScan = long2ip(currentLong);
                 currentLong++;
                 this.scannedCount++;
@@ -146,7 +154,8 @@ class ScanManager extends EventEmitter {
                         if (result.status === STATUS.OPEN) {
                             this.consecutiveTimeouts = 0; // Reset on success
 
-                             await botLimit(async () => {
+                            // Decoupled Bot Analysis
+                            const botTask = botLimit(async () => {
                                 if (this.isPaused || !this.isScanning) return;
 
                                 this.emit('log', `[ANALYZING] ${ipToScan}...`);
@@ -174,6 +183,15 @@ class ScanManager extends EventEmitter {
                                     this.emit('log', `[FAILED] ${ipToScan} (Could not join)`);
                                 }
                              });
+
+                             this.botPromises.add(botTask);
+                             botTask.finally(() => {
+                                 this.botPromises.delete(botTask);
+                                 if (!this.isPaused) processNext(); // Resume scanning if we were blocked by backpressure
+                             });
+
+                             // Do NOT await botTask here.
+
                         } else if (result.status === STATUS.TIMEOUT || result.status === STATUS.ERROR) {
                             if (config.vpn.enabled) {
                                 this.consecutiveTimeouts++;
@@ -198,7 +216,10 @@ class ScanManager extends EventEmitter {
 
         const waitForCompletion = async () => {
             while (this.isScanning) {
-                if (activePromises.size === 0 && currentLong > endLong && !this.isPaused) {
+                if (activePromises.size === 0 &&
+                    this.botPromises.size === 0 &&
+                    currentLong > endLong &&
+                    !this.isPaused) {
                     break;
                 }
                 await new Promise(resolve => setTimeout(resolve, 100));

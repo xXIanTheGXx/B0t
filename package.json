@@ -26,7 +26,7 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "express": "^4.21.2",
+    "express": "^4.18.2",
     "geoip-lite": "^1.4.10",
     "minecraft-data": "^3.100.0",
     "minecraft-protocol": "^1.62.0",
@@ -34,7 +34,7 @@
     "mineflayer-pathfinder": "^2.4.5",
     "mineflayer-statemachine": "^1.7.0",
     "mineflayer-web-inventory": "^1.8.5",
-    "mongoose": "^9.0.0",
+    "mongoose": "^6.12.0",
     "node-fetch": "^2.7.0",
     "p-limit": "^3.1.0",
     "socket.io": "^4.8.1",
