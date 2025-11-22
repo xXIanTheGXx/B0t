@@ -19,6 +19,12 @@
     "email": "",
     "password": ""
   },
+  "discord": {
+    "webhookUrl": ""
+  },
+  "agent": {
+    "enabled": false
+  },
   "bot": {
     "features": {
       "structureScan": true,
