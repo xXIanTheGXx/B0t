@@ -177,7 +177,7 @@ class ScanManager extends EventEmitter {
                                 };
 
                                 const data = await analyzeServer(ipToScan, botOpts);
-                                if (data.online) {
+                                if (data.online || data.kickReason) {
                                     this.emit('result', data);
                                 } else {
                                     this.emit('log', `[FAILED] ${ipToScan} (Could not join)`);

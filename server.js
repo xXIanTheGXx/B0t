@@ -2,8 +2,8 @@ const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const ScanManager = require('./src/scanManager');
-const { connect } = require('./src/database');
-const { loadConfig } = require('./src/config');
+const { connect, Server: ServerModel } = require('./src/database');
+const { loadConfig, saveConfig } = require('./src/config');
 const apiRouter = require('./src/api');
 const fs = require('fs');
 const path = require('path');
@@ -58,9 +58,26 @@ io.on('connection', (socket) => {
             io.emit('progress', data);
         });
 
-        currentScanner.on('result', (result) => {
+        currentScanner.on('result', async (result) => {
             outputStream.write(JSON.stringify(result) + '\n');
             io.emit('result', result);
+
+            // Save to MongoDB
+            try {
+                await ServerModel.findOneAndUpdate(
+                    { ip: result.ip, port: result.port },
+                    {
+                        ...result,
+                        lastSeen: new Date(),
+                        // Ensure location structure if missing
+                        location: result.location || { type: 'Point', coordinates: [0, 0] }
+                    },
+                    { upsert: true, new: true }
+                );
+            } catch (err) {
+                // console.error('Failed to save to DB:', err.message);
+                // Silent fail to avoid spamming logs if DB is down
+            }
         });
 
         currentScanner.on('complete', () => {
@@ -82,6 +99,9 @@ io.on('connection', (socket) => {
                 bot: bot || {},
                 ...rest
             };
+
+            // Save config to file
+            saveConfig(config);
 
             await currentScanner.startScan(config);
         } catch (e) {

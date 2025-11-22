@@ -11,7 +11,7 @@ const DEFAULTS = {
     scan: {
         startIp: '1.0.0.0',
         endIp: '1.0.0.255',
-        portConcurrency: 200,
+        portConcurrency: 1000,
         botConcurrency: 5
     },
     auth: {
@@ -51,6 +51,18 @@ function loadConfig() {
     return DEFAULTS;
 }
 
+function saveConfig(newConfig) {
+    try {
+        const configToSave = mergeDeep(loadConfig(), newConfig);
+        fs.writeFileSync(CONFIG_PATH, JSON.stringify(configToSave, null, 2), 'utf8');
+        console.log('Config saved to', CONFIG_PATH);
+        return true;
+    } catch (e) {
+        console.error('Error saving config:', e.message);
+        return false;
+    }
+}
+
 // Simple deep merge
 function mergeDeep(target, source) {
     if (typeof target !== 'object' || target === null) {
@@ -77,4 +89,4 @@ function isObject(item) {
     return (item && typeof item === 'object' && !Array.isArray(item));
 }
 
-module.exports = { loadConfig, DEFAULTS };
+module.exports = { loadConfig, saveConfig, DEFAULTS };
