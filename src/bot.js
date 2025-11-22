@@ -1,5 +1,8 @@
 const mineflayer = require('mineflayer');
 const vec3 = require('vec3');
+const { setupPathfinder, configureMovements } = require('./bot_modules/navigation');
+const { createAgent } = require('./bot_modules/behavior');
+const DiscordNotifier = require('./notifications');
 
 const DEFAULT_ARTIFICIAL_BLOCKS = [
     'planks', 'cobblestone', 'bricks', 'glass', 'stone_bricks', 'bookshelf',
@@ -14,7 +17,7 @@ function analyzeServer(ip, options = {}) {
             host: ip,
             port: options.port || 25565,
             username: options.username || options.email || `Scanner${Math.floor(Math.random() * 1000)}`,
-            auth: options.auth || 'offline',
+            auth: options.auth || options.type || 'offline',
             version: false, // Auto detect
             hideErrors: true
         };
@@ -45,6 +48,11 @@ function analyzeServer(ip, options = {}) {
 
         const bot = mineflayer.createBot(botOptions);
         let resolveCalled = false;
+        let notifier = null;
+
+        if (options.discord && options.discord.webhookUrl) {
+            notifier = new DiscordNotifier(options.discord.webhookUrl);
+        }
 
         const finish = () => {
             if (resolveCalled) return;
@@ -81,6 +89,19 @@ function analyzeServer(ip, options = {}) {
         bot.once('spawn', async () => {
             // Collect Game Info
             data.gamemode = bot.game.gameMode;
+
+            // Setup Navigation & Agent
+            try {
+                setupPathfinder(bot);
+                const moves = configureMovements(bot);
+                if (moves) bot.pathfinder.setMovements(moves);
+
+                if (options.agent && options.agent.enabled) {
+                    createAgent(bot);
+                }
+            } catch (e) {
+                // Ignore agent setup errors
+            }
             
             // Wait a bit for chunks to load, but don't hang forever
             try {
@@ -104,6 +125,18 @@ function analyzeServer(ip, options = {}) {
             // Structure Detection
             if (features.structureScan !== false) {
                 scanForStructures(bot, data, structureBlocks);
+
+                if (data.structures.length > 0 && notifier) {
+                    notifier.send(
+                        'Structures Found',
+                        `Found ${data.structures.length} types of structures on ${ip}`,
+                        0x00FF00,
+                        [
+                            { name: 'Structures', value: data.structures.join(', '), inline: false },
+                            { name: 'Version', value: bot.version, inline: true }
+                        ]
+                    );
+                }
             }
 
             // Block Breaking Test
