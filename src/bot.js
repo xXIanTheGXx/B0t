@@ -14,7 +14,7 @@ function analyzeServer(ip, options = {}) {
             host: ip,
             port: options.port || 25565,
             username: options.username || options.email || `Scanner${Math.floor(Math.random() * 1000)}`,
-            auth: options.auth || 'offline',
+            auth: options.auth || options.type || 'offline',
             version: false, // Auto detect
             hideErrors: true
         };

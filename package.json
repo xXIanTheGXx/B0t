@@ -7,6 +7,7 @@
   "scripts": {
     "start": "node server.js",
     "cli": "node index.js",
+    "scan:v2": "node src/run_scan.js",
     "build": "pkg . --out-path dist --compress GZip --targets node18-linux-x64,node18-win-x64,node18-macos-x64",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -27,7 +28,9 @@
   "dependencies": {
     "express": "^5.1.0",
     "minecraft-data": "^3.100.0",
+    "minecraft-protocol": "^1.62.0",
     "mineflayer": "^4.33.0",
+    "mongoose": "^9.0.0",
     "p-limit": "^3.1.0",
     "socket.io": "^4.8.1",
     "vec3": "^0.1.10"
