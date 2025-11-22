@@ -14,7 +14,7 @@ const io = new Server(server);
 
 // Connect to Database
 const config = loadConfig();
-const dbUri = config.database ? config.database.uri : 'mongodb://localhost:27017/minecraft_scanner';
+const dbUri = config.database ? config.database.uri : 'mongodb://127.0.0.1:27017/minecraft_scanner';
 connect(dbUri).catch(err => console.error('Database connection failed:', err.message));
 
 app.use(express.static(path.join(__dirname, 'public')));

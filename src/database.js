@@ -76,6 +76,7 @@ async function connect(uri) {
         throw new Error('Database URI is required');
     }
     try {
+        mongoose.set('strictQuery', false);
         await mongoose.connect(uri);
         console.log('Connected to MongoDB');
     } catch (error) {
