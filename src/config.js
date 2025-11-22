@@ -1,7 +1,11 @@
 const fs = require('fs');
 const path = require('path');
 
-const CONFIG_PATH = path.resolve(__dirname, '../config.json');
+// Check process.cwd() for config first (for standalone), then fallback to relative (for dev/internal)
+let CONFIG_PATH = path.resolve(process.cwd(), 'config.json');
+if (!fs.existsSync(CONFIG_PATH)) {
+    CONFIG_PATH = path.resolve(__dirname, '../config.json');
+}
 
 const DEFAULTS = {
     scan: {
